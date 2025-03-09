@@ -6,9 +6,13 @@ import subprocess
 from urllib.parse import urlparse
 
 # 填写以下信息
-API_KEY = ""
 API_URL = ""
+API_KEY = ""
 MODEL_NAME = ""
+
+API_URL = input("Enter OpenAI API Base-URL: ")
+API_KEY = input("Enter OpenAI API Key: ")
+MODEL_NAME = input("Enter OpenAI Model Name: ")
 
 
 TIP_TEXT = """
