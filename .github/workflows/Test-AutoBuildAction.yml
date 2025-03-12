@@ -18,6 +18,13 @@ jobs:
       - name: Check-out repository
         uses: actions/checkout@v4
 
+      - name: Check if prompt.txt exists
+        run: |
+          if [ ! -f ./Functions/prompt.txt ]; then
+            echo "Error: ./Functions/prompt.txt does not exist!"
+            exit 1
+          fi
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -30,10 +37,14 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Verify Installed Dependencies
+        run: |
+          pip list
+
       - name: Build Executable with Nuitka
         uses: Nuitka/Nuitka-Action@main
         with:
-          nuitka-version: main
+          nuitka-version: 1.8.0  # Use a stable version
           script-name: main.py
           mode: app
           include-data-dir: |
