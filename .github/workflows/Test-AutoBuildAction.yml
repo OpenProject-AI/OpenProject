@@ -66,6 +66,8 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to create a release
     steps:
       - name: Check-out repository
         uses: actions/checkout@v4
