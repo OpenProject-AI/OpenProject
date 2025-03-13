@@ -49,7 +49,7 @@ jobs:
       - name: Build Executable with Nuitka
         uses: Nuitka/Nuitka-Action@main
         with:
-          nuitka-version: 1.8.0  # Use a stable version
+          nuitka-version: main
           script-name: main.py
           mode: app
           include-data-dir: |
