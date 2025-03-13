@@ -52,7 +52,7 @@ jobs:
           nuitka-version: main
           script-name: main.py
           mode: app
-          include-data-dir: |
+          include-data-files: |
             ./Functions/prompt.txt=Functions/prompt.txt
 
       - name: Upload Artifacts
