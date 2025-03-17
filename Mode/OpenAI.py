@@ -1,6 +1,11 @@
-from Functions import ActionManage, GetPromptFile, MessagesHistoryManage, RequestAPI, ConfigManage
+# from Functions import ActionManage, GetPromptFile, MessagesHistoryManage, RequestAPI, ConfigManage
 import json
 import re
+
+# 导入Functions
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))  # 添加上级目录到搜索路径
+from Functions import ActionManage, GetPromptFile, MessagesHistoryManage, RequestAPI, ConfigManage
 
 BASE_URL = ConfigManage.wnGet('BASE_URL')
 API_KEY = ConfigManage.wnGet('API_KEY')
@@ -73,8 +78,8 @@ def action_round(chat_history: list, action_cback: dict):
     # 将动作结果加入上下文
     chat_history.append(
         {
-            "role": "tool",
-            "content": action_cback
+            "role": "assistant",
+            "content": action_cback["content"]
         }
     )
     # 调用RequestAPI模块，向OpenAI API发送请求
@@ -97,7 +102,11 @@ def action_round(chat_history: list, action_cback: dict):
         "chat_history": chat_history
     }
 
-if __name__ == '__main__':
+def app():
+    """
+    主函数
+    """
+    global chat_history
     while True:
         user_input = input("User >> ")
         result = round_chat(chat_history, user_input)
