@@ -8,5 +8,5 @@ with open('requirements_win.txt', 'w', encoding='utf_16_le') as f:
 # 不写入包含pywin32的行
 with open('requirements_other.txt', "w", encoding="utf_16_le") as f:
     for line in requirements:
-        if "pywin32" not in line:
+        if "pywin32" not in line and "windows-curses" not in line:
             f.write(line)
