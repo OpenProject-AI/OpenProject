@@ -1,13 +1,14 @@
 from Functions import ActionManage, GetPromptFile, MessagesHistoryManage, RequestAPI, ConfigManage
 import json
 import re
+import os
 
 BASE_URL = ConfigManage.wnGet('BASE_URL')
 API_KEY = ConfigManage.wnGet('API_KEY')
 MODEL_NAME = ConfigManage.wnGet('MODEL_NAME')
 
 
-prompt = GetPromptFile.GetPromptFile()
+prompt = GetPromptFile.GetPromptFile(base_dir=os.path.dirname(os.path.abspath(__file__)))
 chat_history = [
     {
         "role": "system",
