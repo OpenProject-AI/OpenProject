@@ -25,8 +25,8 @@ jobs:
             echo "Error: main.py does not exist!"
             exit 1
           fi
-          if [ ! -f "Functions/prompt.txt" ]; then
-            echo "Error: Functions/prompt.txt does not exist!"
+          if [ ! -f "files/prompt.txt" ]; then
+            echo "Error: files/prompt.txt does not exist!"
             exit 1
           fi
 
