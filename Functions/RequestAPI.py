@@ -62,7 +62,7 @@ def OpenAI_API_Cback_To_Text(cback):
     """
     将OpenAI API返回的json格式的结果转换为文本格式
     """
-    return cback
+    return cback["choices"][0]["message"]["content"]
 
 def OpenAI_API_Cback_To_ThinkText(cback):
     """

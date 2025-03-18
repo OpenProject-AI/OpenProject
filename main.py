@@ -36,6 +36,7 @@ def round_chat(chat_history: list, user_input, length_limit=10):
         history=chat_history
     )
     # 将OpenAI API的返回结果转化为文本
+    # 错误打点
     response = RequestAPI.OpenAI_API_Cback_To_Text(cback)
     # 将文本加入上下文
     chat_history.append(
