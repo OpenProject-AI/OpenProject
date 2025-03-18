@@ -50,6 +50,7 @@ def round_chat(chat_history: list, user_input, length_limit=10):
     action = ActionManage.wnGetActionContent(response)  # 获取动作指令
     if action != None:  # 如果存在动作指令，则执行动作，如果没有，则返回None
         action_cback = ActionManage.action_runner(action)
+        chat_history = action_round(chat_history, action_cback)["chat_history"]  # 修补漏洞
     else:
         action_cback = None
     # 判断是否包含思考过程
@@ -75,7 +76,7 @@ def action_round(chat_history: list, action_cback: dict):
     # 将动作结果加入上下文
     chat_history.append(
         {
-            "role": "tool",
+            "role": "user",
             "content": action_cback
         }
     )
@@ -103,7 +104,7 @@ if __name__ == '__main__':
     while True:
         user_input = input("User >> ")
         result = round_chat(chat_history, user_input)
-        if result["chat_history"][-1]["content"] in "</think>":
+        if  "</think>" in result["chat_history"][-1]["content"]:
             print("Assistant >> " + result["chat_history"][-1]["content"].split("</think>")[1])
         else:
             print("Assistant >> " + result["chat_history"][-1]["content"])

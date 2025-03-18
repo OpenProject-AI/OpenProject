@@ -73,7 +73,7 @@ def get_config(name: str, default: Union[str, int, float, bool, List, Dict, None
     # 转换值
     converted_value = convert_value(cfg_vl)
     
-    print(f"[CFG LOADER] READ FROM {path}: {name} = {converted_value} | Type: {type(converted_value)}")
+    print(f'[CFG LOADER] READ FROM {path}: {name} = {"*" * len(converted_value)} | Type: {type(converted_value)}')
     return converted_value
 
 def wnGet(name: str, default: Union[str, int, float, bool, List, Dict, None] = None, path: str = cfg_default_path) -> Any:
