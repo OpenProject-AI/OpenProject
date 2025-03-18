@@ -15,6 +15,11 @@
 - `base_url`: `https://api.groq.com/openai/v1`
 - `token`: 目前暂无教程，自行查找
 - `model`: 打开`Chat`页面复制模型名字即可
+### ColudAI-SAI | OpenAI 格式接入
+- `base_url`: `https://ai.coludai.cn/api`
+- `Key`: 请登录[`https://sai.coludai.cn/`](https://sai.coludai.cn/), 登录后点击头像，找到`CA`令牌，复制即可
+- `model`: `SAI-L6`/`SAI-L6-Coder`
+
 ## STDAction-Local标准支持进度
 > 正在编写中...
 ### 动作列表
