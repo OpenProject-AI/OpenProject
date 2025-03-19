@@ -19,6 +19,7 @@ def init_config(config_file=cfg_default_path, template: dict = None) -> None:
             'BASE_URL': "https://Domain/v1",
             'API_KEY': "your_api_key",
             'MODEL_NAME': "your_model_name",
+            'GUI': "false",
             'API_MODE': "openai"
         }
     # 遍历template字典，将其写入./cfg.env文件中
