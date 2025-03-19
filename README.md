@@ -1,5 +1,6 @@
 # OpenProject
 > OpenProject目前因为代码提交错误，需要重做qwq
+
 ![OpenProject-Demo](files/OpenProject-Demo.png)
 
 ## 警告
@@ -8,17 +9,26 @@
 基于OpenAI格式（可以使用第三方代理）接口，可以让AI发起Web请求、文件阅读、命令执行等操作。求Star
 ## 使用
 ### 超算互联网SCNet | OpenAI 格式接入
+> 实测`无法接入`，恢复后请提交Issue。如遇代码问题请提交Issue/PR。
+
 - `base_url`: `https://api.scnet.cn/api/llm/v1`
 - `token`: 请打开`SCNet`网站，登录并进入Chat页面，左下角会有"xxAPI"类似的内容，点击，进入API管理页面，点击"API Key"，点击"创建API Key"，填入即可
 - `model`: 免费的就只能选`DeepSeek-R1-Distill-Qwen-7B`或`DeepSeek-R1-Distill-Qwen-32B`。如果你有其他模型的token，请填入模型名称
+
 ### Groq | OpenAI 格式接入
 - `base_url`: `https://api.groq.com/openai/v1`
 - `token`: 目前暂无教程，自行查找
 - `model`: 打开`Chat`页面复制模型名字即可
+
 ### ColudAI-SAI | OpenAI 格式接入
+> 实测`无法接入`，恢复后请提交Issue。如遇代码问题请提交Issue/PR。
+
 - `base_url`: `https://ai.coludai.cn/api`
 - `Key`: 请登录[`https://sai.coludai.cn/`](https://sai.coludai.cn/), 登录后点击头像，找到`CA`令牌，复制即可
 - `model`: `SAI-L6`/`SAI-L6-Coder`
+
+### 其他平台接入
+> 提交Issue/PR以支持
 
 ## STDAction-Local标准支持进度
 > 正在编写中...
