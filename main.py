@@ -103,7 +103,13 @@ def action_round(chat_history: list, action_cback: dict):
 if __name__ == '__main__':
     while True:
         user_input = input("User >> ")
-        result = round_chat(chat_history, user_input)
+        try:
+            result = round_chat(chat_history, user_input)
+        except KeyError:
+            print("检查你的配置信息/网络连接是否正确！")
+        except Exception as e:
+            print("发生错误，请联系作者！")
+            print(e)
         if  "</think>" in result["chat_history"][-1]["content"]:
             print("Assistant >> " + result["chat_history"][-1]["content"].split("</think>")[1])
         else:
