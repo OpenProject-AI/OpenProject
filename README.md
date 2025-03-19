@@ -28,7 +28,7 @@
 - `model`: `SAI-L6`/`SAI-L6-Coder`
 
 ### 其他平台接入
-> 提交Issue/PR以支持
+> 提交Issue/PR以支持更多平台。
 
 ## STDAction-Local标准支持进度
 > 正在编写中...
