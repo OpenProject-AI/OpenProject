@@ -100,13 +100,12 @@ def action_round(chat_history: list, action_cback: dict):
         "chat_history": chat_history
     }
 
-def start_chat():
+def start_chat(user_input):
     """
     开始对话
     """
     global chat_history, prompt, BASE_URL, API_KEY, MODEL_NAME
     while True:
-        user_input = input("User >> ")
         try:
             result = round_chat(chat_history, user_input)
         except KeyError:
@@ -126,8 +125,8 @@ if __name__ == '__main__':
         user_input = input("User >> ")
         try:
             result = round_chat(chat_history, user_input)
-        except KeyError:
-            print("检查你的配置信息/网络连接是否正确！")
+        except KeyError as e:
+            print("检查你的配置信息/网络连接是否正确！"+str(e))
         except Exception as e:
             print("发生错误，请联系作者！")
             print(e)
