@@ -8,6 +8,7 @@ def GetPromptFile(base_dir):
         with open(custom_prompt_path, "r", encoding="utf-8") as f:
             custom_prompt = f.read()
             prompt = prompt + "\n【拓展prompt】\n" + custom_prompt
+            print("【拓展prompt】已加载")
     except FileNotFoundError:
         pass
     
