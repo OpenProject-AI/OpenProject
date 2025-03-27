@@ -2,135 +2,113 @@ from Functions import ActionManage, GetPromptFile, MessagesHistoryManage, Reques
 import json
 import re
 import os
+import logging
+from abc import ABC, abstractmethod
 
-BASE_URL = ConfigManage.wnGet('BASE_URL')
-API_KEY = ConfigManage.wnGet('API_KEY')
-MODEL_NAME = ConfigManage.wnGet('MODEL_NAME')
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
+class BaseChatManager(ABC):
+    def __init__(self):
+        self.base_url = ConfigManage.wnGet('BASE_URL')
+        self.api_key = ConfigManage.wnGet('API_KEY')
+        self.model_name = ConfigManage.wnGet('MODEL_NAME')
+        self.prompt = GetPromptFile.GetPromptFile(base_dir=os.path.dirname(os.path.abspath(__file__)))
+        self.chat_history = [
+            {"role": "system", "content": self.prompt}
+        ]
 
-prompt = GetPromptFile.GetPromptFile(base_dir=os.path.dirname(os.path.abspath(__file__)))
-chat_history = [
-    {
-        "role": "system",
-        "content": prompt
-    }
-]
+    @abstractmethod
+    def get_api_response(self):
+        """获取API响应，由子类实现"""
+        pass
 
-def round_chat(chat_history: list, user_input, length_limit=10):
-    """
-    一轮对话，获取
-    """
-    # 导入全局变量，配置信息
-    global BASE_URL, API_KEY, MODEL_NAME
-    # 将用户输入加入上下文
-    chat_history.append(
-        {
-            "role": "user",
-            "content": user_input
-        }
-    )
-    # 调用RequestAPI模块，向OpenAI API发送请求
-    cback = RequestAPI.OpenAI_Format_API(
-        base_url=BASE_URL,
-        api_key=API_KEY,
-        model=MODEL_NAME,
-        history=chat_history
-    )
-    # 将OpenAI API的返回结果转化为文本
-    # 错误打点
-    response = RequestAPI.OpenAI_API_Cback_To_Text(cback)
-    # 将文本加入上下文
-    chat_history.append(
-        {
-            "role": "assistant",
-            "content": response
-        }
-    )
-    MessagesHistoryManage.LimitMessagesHistoryLength(chat_history, length_limit)  # 限制上下文长度
-    action = ActionManage.wnGetActionContent(response)  # 获取动作指令
-    if action != None:  # 如果存在动作指令，则执行动作，如果没有，则返回None
-        action_cback = ActionManage.action_runner(action)
-        chat_history = action_round(chat_history, action_cback)["chat_history"]  # 修补漏洞
-    else:
-        action_cback = None
-    # 判断是否包含思考过程
-    if not RequestAPI.Check_ThinkText(cback):
+    def handle_api_response(self, cback):
+        """处理API响应"""
+        response = RequestAPI.OpenAI_API_Cback_To_Text(cback)
+        self.chat_history.append({"role": "assistant", "content": response})
+        return response
+
+    def handle_action(self, response):
+        """处理动作指令"""
+        action = ActionManage.get_action_content(response)
+        if action:
+            return ActionManage.action_runner(action)
+        return None
+
+    def process_chat_round(self, user_input, length_limit=10):
+        """处理一轮对话的核心逻辑"""
+        # 添加用户输入到历史记录
+        self.chat_history.append({"role": "user", "content": user_input})
+
+        # 获取API响应
+        cback = self.get_api_response()
+
+        # 处理响应
+        response = self.handle_api_response(cback)
+        MessagesHistoryManage.LimitMessagesHistoryLength(self.chat_history, length_limit)
+
+        # 处理动作
+        action_cback = self.handle_action(response)
+        if action_cback:
+            return {
+                "chat_history": self.chat_history,
+                "action_cback": action_cback,
+                "use_action": True
+            }
+
+        # 处理思考过程
+        if RequestAPI.Check_ThinkText(cback):
+            think_text = RequestAPI.OpenAI_API_Cback_To_ThinkText(cback)
+            return {
+                "chat_history": self.chat_history,
+                "think_text": think_text,
+                "action_cback": None,
+                "use_action": False
+            }
+
         return {
-            "chat_history": chat_history,
-            "action_cback": action_cback
-        }
-    else:
-        think_text = RequestAPI.OpenAI_API_Cback_To_ThinkText(cback)
-        return {
-            "chat_history": chat_history,
-            "think_text": think_text,
-            "action_cback": action_cback
+            "chat_history": self.chat_history,
+            "action_cback": None,
+            "use_action": False
         }
 
-def action_round(chat_history: list, action_cback: dict):
-    """
-    把动作结果给AI
-    """
-    # 导入全局变量，配置信息
-    global BASE_URL, API_KEY, MODEL_NAME
-    # 将动作结果加入上下文
-    chat_history.append(
-        {
-            "role": "user",
-            "content": action_cback
-        }
-    )
-    # 调用RequestAPI模块，向OpenAI API发送请求
-    cback = RequestAPI.OpenAI_Format_API(
-        base_url=BASE_URL,
-        api_key=API_KEY,
-        model=MODEL_NAME,
-        history=chat_history
-    )
-    # 将OpenAI API的返回结果转化为文本
-    response = RequestAPI.OpenAI_API_Cback_To_Text(cback)
-    # 将文本加入上下文
-    chat_history.append(
-        {
-            "role": "assistant",
-            "content": response
-        }
-    )
-    return {
-        "chat_history": chat_history
-    }
+class ChatManager(BaseChatManager):
+    def get_api_response(self):
+        """实现OpenAI API响应获取"""
+        return RequestAPI.OpenAI_Format_API(
+            base_url=self.base_url,
+            api_key=self.api_key,
+            model=self.model_name,
+            history=self.chat_history
+        )
 
-def start_chat(user_input):
-    """
-    开始对话
-    """
-    global chat_history, prompt, BASE_URL, API_KEY, MODEL_NAME
+def main():
+    chat_manager = ChatManager()
     while True:
         try:
-            result = round_chat(chat_history, user_input)
-        except KeyError:
-            print("检查你的配置信息/网络连接是否正确！")
-            exit(1)
+            user_input = input("User >> ")
+            result = chat_manager.process_chat_round(user_input)
+            
+            while result["use_action"]:
+                print("Assistant >> " + str(result["action_cback"]))
+                result = chat_manager.process_chat_round(result["action_cback"])
+                
+            response = result["chat_history"][-1]["content"]
+            if "</think>" in response:
+                print("Assistant >> " + response.split("</think>")[1])
+            else:
+                print("Assistant >> " + response)
+                
+        except KeyError as e:
+            logging.error(f"配置错误或网络连接失败: {str(e)}")
+            print(f"检查你的配置信息/网络连接是否正确！{str(e)}")
         except Exception as e:
-            print("发生错误，请联系作者！")
-            print(e)
-            exit(1)
-        if  "</think>" in result["chat_history"][-1]["content"]:
-            return result["chat_history"][-1]["content"].split("</think>")[1]
-        else:
-            return result["chat_history"][-1]["content"]
+            logging.error(f"发生未知错误: {str(e)}")
+            print(f"发生错误，请联系作者！\n{str(e)}")
 
 if __name__ == '__main__':
-    while True:
-        user_input = input("User >> ")
-        try:
-            result = round_chat(chat_history, user_input)
-        except KeyError as e:
-            print("检查你的配置信息/网络连接是否正确！"+str(e))
-        except Exception as e:
-            print("发生错误，请联系作者！")
-            print(e)
-        if  "</think>" in result["chat_history"][-1]["content"]:
-            print("Assistant >> " + result["chat_history"][-1]["content"].split("</think>")[1])
-        else:
-            print("Assistant >> " + result["chat_history"][-1]["content"])
+    main()

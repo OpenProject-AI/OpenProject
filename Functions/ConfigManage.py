@@ -20,7 +20,8 @@ def init_config(config_file=cfg_default_path, template: dict = None) -> None:
             'API_KEY': "your_api_key",
             'MODEL_NAME': "your_model_name",
             'GUI': "false",
-            'API_MODE': "openai"
+            'API_MODE': "openai",
+            'DEVELOPER_MODE': "false"
         }
     # 遍历template字典，将其写入./cfg.env文件中
     try:
@@ -68,14 +69,27 @@ def convert_value(value: Union[str, None]) -> Union[bool, str, int, float, List,
     return value
 
 def get_config(name: str, default: Union[str, int, float, bool, List, Dict, None] = None, path: str = cfg_default_path) -> Any:
-    dotenv.load_dotenv(path)
-    cfg_vl = os.getenv(name, default)
-    
-    # 转换值
-    converted_value = convert_value(cfg_vl)
-    
-    print(f'[CFG LOADER] READ FROM {path}: {name} = [漏洞原因被删除] | Type: {type(converted_value)}')
-    return converted_value
+    try:
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"配置文件不存在: {path}")
+            
+        dotenv.load_dotenv(path)
+        cfg_vl = os.getenv(name, default)
+        
+        # 转换值
+        converted_value = convert_value(cfg_vl)
+        
+        # 对API_MODE进行特殊处理和验证
+        if name == 'API_MODE':
+            if converted_value not in ['openai', 'ollama', 'custom']:
+                raise ValueError(f"不支持的API模式: {converted_value}，请使用 openai、ollama 或 custom")
+        
+        if name == 'DEVELOPER_MODE' or (converted_value is not None and convert_value(os.getenv('DEVELOPER_MODE', 'false'))):
+            print(f'[CFG LOADER] READ FROM {path}: {name} = {converted_value} | Type: {type(converted_value)}')
+        return converted_value
+    except Exception as e:
+        print(f"[ERROR] 配置读取失败: {str(e)}")
+        raise
 
 def wnGet(name: str, default: Union[str, int, float, bool, List, Dict, None] = None, path: str = cfg_default_path) -> Any:
     """
@@ -106,6 +120,8 @@ def init_wizard() -> None:
             'API_MODE': "openai"
         }
         init_config(template=template)
+        dev_mode = input("是否启用开发者模式（true/false）？开发者模式将显示详细的请求日志：")
+        template['DEVELOPER_MODE'] = dev_mode.lower()
         print("配置成功！继续使用！")
     elif api_mode.lower() == "ollama":
         # OLlama API
@@ -118,6 +134,8 @@ def init_wizard() -> None:
             'API_MODE': "ollama"
         }
         init_config(template=template)
+        dev_mode = input("是否启用开发者模式（true/false）？开发者模式将显示详细的请求日志：")
+        template['DEVELOPER_MODE'] = dev_mode.lower()
         print("配置成功！继续使用！")
     elif api_mode.lower() == "custom":
         # Custom API
@@ -131,6 +149,8 @@ def init_wizard() -> None:
             'API_MODE': "custom"
         }
         init_config(template=template)
+        dev_mode = input("是否启用开发者模式（true/false）？开发者模式将显示详细的请求日志：")
+        template['DEVELOPER_MODE'] = dev_mode.lower()
         print("配置成功！继续使用！")
     else:
         print("输入错误，请重新输入。")
