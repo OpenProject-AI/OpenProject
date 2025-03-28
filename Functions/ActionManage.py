@@ -10,7 +10,7 @@ def get_action_content(text):
         return match.group(1).strip()
     else:
         # print("Error: No action content found in the input text.")
-        print("提示：无ACTION动作内容，建议使用wnGetActionContent函数获取。")
+        # print("提示：无ACTION动作内容，建议使用wnGetActionContent函数获取。")
         return None
 
 def action_cback_render(action_type: str, action: str, is_ok: str = "yes or no", content: str = "", extra: dict = {"standard": "OpenProject/stdAction-Local"}):
