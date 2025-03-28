@@ -54,11 +54,7 @@ jobs:
           mode: app
           include-data-dir: |
             ./files=files
-          include-modules: |
-            pygments
-            httpx
-            rich
-            python-dotenv
+          include-modules: pygments
 
       - name: 列出打包后的文件
         run: |
