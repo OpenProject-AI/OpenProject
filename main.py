@@ -4,6 +4,8 @@ import re
 import os
 import logging
 from abc import ABC, abstractmethod
+from rich.markdown import Markdown
+from rich.console import Console
 
 # 配置日志
 logging.basicConfig(
@@ -20,6 +22,7 @@ class BaseChatManager(ABC):
         self.chat_history = [
             {"role": "system", "content": self.prompt}
         ]
+        self.console = Console()
 
     @abstractmethod
     def get_api_response(self):
@@ -94,21 +97,21 @@ def main():
             result = chat_manager.process_chat_round(user_input)
             
             while result["use_action"]:
-                print("Assistant >> " + str(result["action_cback"]))
+                chat_manager.console.print(Markdown(f"**Assistant >>** {str(result['action_cback'])}"))
                 result = chat_manager.process_chat_round(result["action_cback"])
                 
             response = result["chat_history"][-1]["content"]
             if "</think>" in response:
-                print("Assistant >> " + response.split("</think>")[1])
+                chat_manager.console.print(Markdown(f"**Assistant >>** {response.split('</think>')[1]}"))
             else:
-                print("Assistant >> " + response)
+                chat_manager.console.print(Markdown(f"**Assistant >>** {response}"))
                 
         except KeyError as e:
             logging.error(f"配置错误或网络连接失败: {str(e)}")
-            print(f"检查你的配置信息/网络连接是否正确！{str(e)}")
+            chat_manager.console.print(Markdown(f"**Error >>** 检查你的配置信息/网络连接是否正确！{str(e)}"))
         except Exception as e:
             logging.error(f"发生未知错误: {str(e)}")
-            print(f"发生错误，请联系作者！\n{str(e)}")
+            chat_manager.console.print(Markdown(f"**Error >>** 发生错误，请联系作者！\n{str(e)}"))
 
 if __name__ == '__main__':
     main()
