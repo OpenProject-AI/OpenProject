@@ -1,5 +1,5 @@
 # OpenProject
-> OpenProject目前因为代码提交错误，需要重做qwq
+> OpenProject于5/2开始重构项目，旧版本归类到v1.0
 
 ![OpenProject-Demo](files/OpenProject-Demo.png)
 

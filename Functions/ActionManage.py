@@ -88,12 +88,12 @@ def action_runner(content: str):
         return None
     
     if check_security:
-        print("\033[1;31m操作请求\033[0m")
-        print(f"\033[1;32m操作类别：{action['type']}\033[0m")
-        print(f"\033[1;32m操作动作：{action['action']}\033[0m")
-        print(f"\033[1;32m操作参数：{action['args']}\033[0m")
-        print("\033[1;31m请确认以上信息是否正确，输入 yes 继续，输入 no 取消操作。\033[0m")
-        confirm = input("\033[1;31m请输入 yes 或 no：\033[0m")
+        print("\033[1;31mAction Request\033[0m")
+        print(f"\033[1;32m ActionType：{action['type']}\033[0m")
+        print(f"\033[1;32m Operation Action：{action['action']}\033[0m")
+        print(f"\033[1;32m Operation parameter：{action['args']}\033[0m")
+        print("\033[1;31m Please confirm if the above information is correct. Enter 'yes' to continue or 'no' to cancel the operation.\033[0m")
+        confirm = input("\033[1;31m Please enter 'yes' or' no ':\033[0m")
         if confirm.lower() != 'yes':
             return action_cback_render(
                 action_type=action['type'],
