@@ -1,18 +1,65 @@
+import logging
+from Functions.logger import setup_logger
+from rich.markdown import Markdown
+from rich.console import Console
 from Functions import ActionManage, GetPromptFile, MessagesHistoryManage, RequestAPI, ConfigManage
 import json
 import re
 import os
-import logging
 from abc import ABC, abstractmethod
-from rich.markdown import Markdown
-from rich.console import Console
 
 # 配置日志
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+logger = setup_logger()
 
+# 新增service模块，将业务逻辑抽离
+class ChatService:
+    def __init__(self, chat_manager):
+        self.chat_manager = chat_manager
+        self.console = Console()
+
+    def process_chat_round(self, user_input, length_limit=10):
+        # 添加用户输入到历史记录
+        self.chat_manager.chat_history.append({"role": "user", "content": user_input})
+
+        # 获取API响应
+        cback = self.chat_manager.get_api_response()
+
+        # 处理响应
+        response = self.chat_manager.handle_api_response(cback)
+        MessagesHistoryManage.LimitMessagesHistoryLength(self.chat_manager.chat_history, length_limit)
+
+        # 处理动作
+        action_cback = self.chat_manager.handle_action(response)
+        if action_cback:
+            return {
+                "chat_history": self.chat_manager.chat_history,
+                "action_cback": action_cback,
+                "use_action": True
+            }
+
+        # 处理思考过程
+        if RequestAPI.Check_ThinkText(cback):
+            think_text = RequestAPI.OpenAI_API_Cback_To_ThinkText(cback)
+            return {
+                "chat_history": self.chat_manager.chat_history,
+                "think_text": think_text,
+                "action_cback": None,
+                "use_action": False
+            }
+
+        return {
+            "chat_history": self.chat_manager.chat_history,
+            "action_cback": None,
+            "use_action": False
+        }
+
+    def display_response(self, response):
+        if "</think>" in response:
+            self.console.print(Markdown(f"**Assistant >>** {response.split('</think>')[1]}"))
+        else:
+            self.console.print(Markdown(f"**Assistant >>** {response}"))
+
+# 修改BaseChatManager，移除process_chat_round方法
 class BaseChatManager(ABC):
     def __init__(self):
         self.base_url = ConfigManage.wnGet('BASE_URL')
@@ -22,7 +69,6 @@ class BaseChatManager(ABC):
         self.chat_history = [
             {"role": "system", "content": self.prompt}
         ]
-        self.console = Console()
 
     @abstractmethod
     def get_api_response(self):
@@ -42,43 +88,6 @@ class BaseChatManager(ABC):
             return ActionManage.action_runner(action)
         return None
 
-    def process_chat_round(self, user_input, length_limit=10):
-        """处理一轮对话的核心逻辑"""
-        # 添加用户输入到历史记录
-        self.chat_history.append({"role": "user", "content": user_input})
-
-        # 获取API响应
-        cback = self.get_api_response()
-
-        # 处理响应
-        response = self.handle_api_response(cback)
-        MessagesHistoryManage.LimitMessagesHistoryLength(self.chat_history, length_limit)
-
-        # 处理动作
-        action_cback = self.handle_action(response)
-        if action_cback:
-            return {
-                "chat_history": self.chat_history,
-                "action_cback": action_cback,
-                "use_action": True
-            }
-
-        # 处理思考过程
-        if RequestAPI.Check_ThinkText(cback):
-            think_text = RequestAPI.OpenAI_API_Cback_To_ThinkText(cback)
-            return {
-                "chat_history": self.chat_history,
-                "think_text": think_text,
-                "action_cback": None,
-                "use_action": False
-            }
-
-        return {
-            "chat_history": self.chat_history,
-            "action_cback": None,
-            "use_action": False
-        }
-
 class ChatManager(BaseChatManager):
     def get_api_response(self):
         """实现OpenAI API响应获取"""
@@ -91,27 +100,25 @@ class ChatManager(BaseChatManager):
 
 def main():
     chat_manager = ChatManager()
+    chat_service = ChatService(chat_manager)
     while True:
         try:
             user_input = input("User >> ")
-            result = chat_manager.process_chat_round(user_input)
+            result = chat_service.process_chat_round(user_input)
             
             while result["use_action"]:
-                chat_manager.console.print(Markdown(f"**Assistant >>** {str(result['action_cback'])}"))
-                result = chat_manager.process_chat_round(result["action_cback"])
+                chat_service.console.print(Markdown(f"**Assistant >>** {str(result['action_cback'])}"))
+                result = chat_service.process_chat_round(result["action_cback"])
                 
             response = result["chat_history"][-1]["content"]
-            if "</think>" in response:
-                chat_manager.console.print(Markdown(f"**Assistant >>** {response.split('</think>')[1]}"))
-            else:
-                chat_manager.console.print(Markdown(f"**Assistant >>** {response}"))
+            chat_service.display_response(response)
                 
         except KeyError as e:
-            logging.error(f"配置错误或网络连接失败: {str(e)}")
-            chat_manager.console.print(Markdown(f"**Error >>** 检查你的配置信息/网络连接是否正确！{str(e)}"))
+            logger.error(f"配置错误或网络连接失败: {str(e)}")
+            chat_service.console.print(Markdown(f"**Error >>** 检查你的配置信息/网络连接是否正确！{str(e)}"))
         except Exception as e:
-            logging.error(f"发生未知错误: {str(e)}")
-            chat_manager.console.print(Markdown(f"**Error >>** 发生错误，请联系作者！\n{str(e)}"))
+            logger.error(f"发生未知错误: {str(e)}")
+            chat_service.console.print(Markdown(f"**Error >>** 发生错误，请联系作者！\n{str(e)}"))
 
 if __name__ == '__main__':
     main()
